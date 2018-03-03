@@ -1,8 +1,8 @@
 defmodule Chain do
   def counter(next_pid) do
     receive do
-      n ->
-        send next_pid, n + 1
+      count ->
+        send next_pid, count + 1
     end
     # note the recursive call here
     counter(next_pid)
@@ -18,8 +18,8 @@ defmodule Chain do
     end
   end
 
-  def build_chain(n, parent) do
-    Enum.reduce 1..n, self(),
+  def build_chain(max_chain_length, parent) do
+    Enum.reduce 1..max_chain_length, self(),
       fn(_, send_to) -> 
         {last, msg} = create_process(send_to)
         send parent, msg
@@ -35,14 +35,14 @@ defmodule Chain do
     receive_outputs()
   end
 
-  def run(n) do
-    Enum.each 1..8, 
+  def run(max_chain_length, chain_count) do
+    Enum.each 1..chain_count, 
       fn(_) ->
-        spawn(Chain, :build_chain, [n, self()])
+        spawn(Chain, :build_chain, [max_chain_length, self()])
       end
 
     receive_outputs()
   end
 end
 
-Chain.run(1_000_000)
+Chain.run(1_000_000, 8)
